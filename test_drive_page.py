@@ -46,6 +46,8 @@ def ensure_lab_data_file() -> None:
     DATA_DIR.mkdir(exist_ok=True)
     if not LAB_DATA_FILE.exists():
         LAB_DATA_FILE.write_text(
+            "username,first_name,last_name,password,blueprint_name\n",
+            encoding="utf-8",
         )
 
 

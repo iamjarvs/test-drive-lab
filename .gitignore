@@ -1,0 +1,50 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+.venv-1/
+venv/
+env/
+
+# Editor / tooling
+.vscode/
+.idea/
+
+# Streamlit / app runtime artifacts
+.streamlit.pid
+logs/
+data/
+
+# Env and secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+
+# Notebook checkpoints
+.ipynb_checkpoints/

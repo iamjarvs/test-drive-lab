@@ -82,6 +82,12 @@ def save_uploaded_csv(csv_text: str) -> None:
     load_lab_rows.clear()
 
 
+def delete_lab_data() -> None:
+    if LAB_DATA_FILE.exists():
+        LAB_DATA_FILE.unlink()
+    load_lab_rows.clear()
+
+
 def render_link_cards() -> None:
     st.subheader("Resources")
     st.caption("Update the URL constants at the top of this file to change the published links.")
@@ -159,6 +165,31 @@ def render_admin_panel() -> None:
 
     st.success("Lab details updated successfully.")
     st.rerun()
+
+    st.divider()
+    st.markdown(
+        """
+        <div class="admin-panel">
+            <p class="admin-kicker">Admin Delete</p>
+            <h3>Clear the lab table</h3>
+            <p>This will delete the CSV file and reset the table to empty on next page reload.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    with st.form("lab_delete_form"):
+        delete_password = st.text_input("Admin Password", type="password", placeholder="Enter password to confirm delete")
+        delete_button = st.form_submit_button("Delete Lab Table", use_container_width=True, type="secondary")
+
+    if delete_button:
+        if delete_password != ADMIN_PASSWORD:
+            st.error("Incorrect password.")
+            return
+
+        delete_lab_data()
+        st.success("Lab table deleted successfully. The table will be empty on reload.")
+        st.rerun()
 
 
 st.set_page_config(

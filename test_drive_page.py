@@ -142,29 +142,21 @@ def render_admin_panel() -> None:
             uploaded_file = st.file_uploader("Upload replacement CSV", type=["csv"], help="UTF-8 CSV with a header row")
         submit_upload = st.form_submit_button("Replace Lab Table", use_container_width=True)
 
-    if not submit_upload:
-        return
-
-    if password != ADMIN_PASSWORD:
-        st.error("Incorrect password.")
-        return
-
-    if uploaded_file is None:
-        st.error("Choose a CSV file to upload.")
-        return
-
-    try:
-        csv_text = validate_uploaded_csv(uploaded_file.getvalue())
-        save_uploaded_csv(csv_text)
-    except UnicodeDecodeError:
-        st.error("The CSV file must be UTF-8 encoded.")
-        return
-    except ValueError as exc:
-        st.error(str(exc))
-        return
-
-    st.success("Lab details updated successfully.")
-    st.rerun()
+    if submit_upload:
+        if password != ADMIN_PASSWORD:
+            st.error("Incorrect password.")
+        elif uploaded_file is None:
+            st.error("Choose a CSV file to upload.")
+        else:
+            try:
+                csv_text = validate_uploaded_csv(uploaded_file.getvalue())
+                save_uploaded_csv(csv_text)
+                st.success("Lab details updated successfully.")
+                st.rerun()
+            except UnicodeDecodeError:
+                st.error("The CSV file must be UTF-8 encoded.")
+            except ValueError as exc:
+                st.error(str(exc))
 
     st.divider()
     st.markdown(
@@ -185,11 +177,10 @@ def render_admin_panel() -> None:
     if delete_button:
         if delete_password != ADMIN_PASSWORD:
             st.error("Incorrect password.")
-            return
-
-        delete_lab_data()
-        st.success("Lab table deleted successfully. The table will be empty on reload.")
-        st.rerun()
+        else:
+            delete_lab_data()
+            st.success("Lab table deleted successfully. The table will be empty on reload.")
+            st.rerun()
 
 
 st.set_page_config(

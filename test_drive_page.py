@@ -13,10 +13,10 @@ DATA_DIR = BASE_DIR / "data"
 LAB_DATA_FILE = DATA_DIR / "qq-users.csv"
 ADMIN_PASSWORD = "C1sco123!"
 
-LAB_GUIDE_URL = "https://cloudlabs.apstra.com/labguide/Cloudlabs/6.1.0/"
+LAB_GUIDE_URL = "https://cloudlabs.apstra.com/labguide/Cloudlabs/6.1.0/techjamlab/01-exploring.html"
 DCA_SIGNUP_URL = "https://get-dca.osiodyssey.com/"
 APSTRA_UI_URL = "https://g-6-1-1-70.t3aco.fragmentationneeded.net/#/login"
-DCA_LOGIN_URL = "https://dc.ai.juniper.net//signin.html#!signin"
+DCA_LOGIN_URL = "https://dc.ai.juniper.net/signin.html#!signin"
 
 RESOURCE_LINKS = [
     {

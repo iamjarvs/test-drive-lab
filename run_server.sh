@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_FILE="test_drive_page.py"
-PORT="${PORT:-8080}"
+PORT="${PORT:-80}"
 HOST="${HOST:-0.0.0.0}"
 LOG_DIR="$ROOT_DIR/logs"
 LOG_FILE="$LOG_DIR/streamlit.log"

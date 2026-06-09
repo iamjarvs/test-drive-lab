@@ -16,19 +16,17 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## 2. Update hardcoded links and password
+## 2. Update admin password
 
-The app uses top-level constants in [test_drive_page.py](test_drive_page.py) for the published links and upload password.
+The app uses a top-level constant in [test_drive_page.py](test_drive_page.py) for the admin password.
 
-Update these values near the top of the file:
+Update this value near the top of the file:
 
 ```python
 ADMIN_PASSWORD = "C1sco123!"
-LAB_GUIDE_URL = "https://example.com/lab-guide"
-DCA_SIGNUP_URL = "https://dc.ai.juniper.net/"
-APSTRA_UI_URL = "https://example.com/apstra-ui"
-OPS_NOTES_URL = "https://example.com/operations"
 ```
+
+The four published resource URLs are now managed from the admin panel in the web UI.
 
 ## 3. Run on a specific port
 
@@ -69,15 +67,22 @@ If this needs to be reachable from other machines, open the same port on the hos
 http://YOUR_HOSTNAME_OR_IP:8080
 ```
 
-## 4. Update the lab table
+## 4. Admin panel actions
 
 1. Open the site.
 2. Click Admin: Update Lab Details at the bottom of the page.
-3. Enter the upload password from [test_drive_page.py](test_drive_page.py).
-4. Upload a UTF-8 CSV file.
-5. Click Replace Lab Table.
+3. Enter the admin password from [test_drive_page.py](test_drive_page.py).
 
-The uploaded CSV replaces data/qq-users.csv and the page refreshes with the new data.
+You can now do two things:
+
+1. Replace the lab table CSV.
+2. Update URL settings for:
+	- Apstra Web UI
+	- Lab Guide
+	- DCA Sign Up
+	- DCA Assurance Login
+
+CSV uploads replace data/qq-users.csv. URL settings are saved to data/url-settings.json.
 
 ## 5. CSV format
 

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
 import streamlit as st
 
@@ -11,6 +13,7 @@ import streamlit as st
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 LAB_DATA_FILE = DATA_DIR / "qq-users.csv"
+URL_SETTINGS_FILE = DATA_DIR / "url-settings.json"
 ADMIN_PASSWORD = "C1sco123!"
 
 LAB_GUIDE_URL = "https://cloudlabs.apstra.com/labguide/Cloudlabs/6.1.0/techjamlab/01-exploring.html"
@@ -18,28 +21,12 @@ DCA_SIGNUP_URL = "https://get-dca.osiodyssey.com/"
 APSTRA_UI_URL = "https://g-6-1-1-70.t3aco.fragmentationneeded.net/#/login"
 DCA_LOGIN_URL = "https://dc.ai.juniper.net/signin.html#!signin"
 
-RESOURCE_LINKS = [
-    {
-        "title": "Apstra Web UI",
-        "description": "Open the Apstra web interface directly for the active lab environment.",
-        "url": APSTRA_UI_URL,
-    },
-    {
-        "title": "Lab Guide",
-        "description": "Open the current walkthrough lab material.",
-        "url": LAB_GUIDE_URL,
-    },
-    {
-        "title": "Data Center Assurance Sign Up",
-        "description": "Open the DCA access page for new users and lab participants.",
-        "url": DCA_SIGNUP_URL,
-    },
-    {
-        "title": "Data Center Assurance Login",
-        "description": "Open the DCA login page for existing users.",
-        "url": DCA_LOGIN_URL,
-    },
-]
+DEFAULT_URL_SETTINGS = {
+    "apstra_ui_url": APSTRA_UI_URL,
+    "lab_guide_url": LAB_GUIDE_URL,
+    "dca_signup_url": DCA_SIGNUP_URL,
+    "dca_assurance_login_url": DCA_LOGIN_URL,
+}
 
 
 def ensure_lab_data_file() -> None:
@@ -88,13 +75,81 @@ def delete_lab_data() -> None:
     load_lab_rows.clear()
 
 
-def render_link_cards() -> None:
-    st.subheader("Resources")
-    st.caption("Update the URL constants at the top of this file to change the published links.")
+@st.cache_data(show_spinner=False)
+def load_url_settings() -> dict[str, str]:
+    DATA_DIR.mkdir(exist_ok=True)
 
-    for first_index in range(0, len(RESOURCE_LINKS), 2):
+    if not URL_SETTINGS_FILE.exists():
+        return dict(DEFAULT_URL_SETTINGS)
+
+    try:
+        loaded = json.loads(URL_SETTINGS_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return dict(DEFAULT_URL_SETTINGS)
+
+    if not isinstance(loaded, dict):
+        return dict(DEFAULT_URL_SETTINGS)
+
+    settings = dict(DEFAULT_URL_SETTINGS)
+    for key in settings:
+        value = loaded.get(key)
+        if isinstance(value, str) and value.strip():
+            settings[key] = value.strip()
+
+    return settings
+
+
+def validate_url_settings(url_settings: dict[str, str]) -> dict[str, str]:
+    cleaned: dict[str, str] = {}
+    for key, value in url_settings.items():
+        normalized = value.strip()
+        parsed = urlparse(normalized)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            raise ValueError(f"Invalid URL for {key.replace('_', ' ')}. Use a full http:// or https:// URL.")
+        cleaned[key] = normalized
+    return cleaned
+
+
+def save_url_settings(url_settings: dict[str, str]) -> None:
+    DATA_DIR.mkdir(exist_ok=True)
+    URL_SETTINGS_FILE.write_text(json.dumps(url_settings, indent=2), encoding="utf-8")
+    load_url_settings.clear()
+
+
+def build_resource_links(url_settings: dict[str, str]) -> list[dict[str, str]]:
+    return [
+        {
+            "title": "Apstra Web UI",
+            "description": "Open the Apstra web interface directly for the active lab environment.",
+            "url": url_settings["apstra_ui_url"],
+        },
+        {
+            "title": "Lab Guide",
+            "description": "Open the current walkthrough lab material.",
+            "url": url_settings["lab_guide_url"],
+        },
+        {
+            "title": "Data Center Assurance Sign Up",
+            "description": "Open the DCA access page for new users and lab participants.",
+            "url": url_settings["dca_signup_url"],
+        },
+        {
+            "title": "Data Center Assurance Login",
+            "description": "Open the DCA login page for existing users.",
+            "url": url_settings["dca_assurance_login_url"],
+        },
+    ]
+
+
+def render_link_cards() -> None:
+    resource_links = build_resource_links(load_url_settings())
+
+    st.subheader("Resources")
+    st.caption("These links are controlled by the admin URL settings panel.")
+
+    for first_index in range(0, len(resource_links), 2):
         columns = st.columns(2, gap="large")
-        for column, link in zip(columns, RESOURCE_LINKS[first_index:first_index + 2]):
+        for column, link in zip(columns, resource_links[first_index:first_index + 2]):
             with column:
                 st.markdown(
                     f"""
@@ -155,6 +210,52 @@ def render_admin_panel() -> None:
                 st.rerun()
             except UnicodeDecodeError:
                 st.error("The CSV file must be UTF-8 encoded.")
+            except ValueError as exc:
+                st.error(str(exc))
+
+    st.divider()
+    st.markdown(
+        """
+        <div class="admin-panel">
+            <p class="admin-kicker">Admin URL Settings</p>
+            <h3>Update published resource links</h3>
+            <p>
+                Change the Web UI URL, Lab Guide URL, DCA Sign Up URL, and DCA Assurance Login URL.
+                These values are persisted and used by the resource cards immediately.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    current_urls = load_url_settings()
+    with st.form("url_settings_form"):
+        url_password = st.text_input("Admin Password", type="password", placeholder="Enter password")
+        apstra_ui_url = st.text_input("Apstra Web UI URL", value=current_urls["apstra_ui_url"])
+        lab_guide_url = st.text_input("Lab Guide URL", value=current_urls["lab_guide_url"])
+        dca_signup_url = st.text_input("DCA Sign Up URL", value=current_urls["dca_signup_url"])
+        dca_assurance_login_url = st.text_input(
+            "DCA Assurance Login URL",
+            value=current_urls["dca_assurance_login_url"],
+        )
+        submit_url_settings = st.form_submit_button("Save URL Settings", use_container_width=True)
+
+    if submit_url_settings:
+        if url_password != ADMIN_PASSWORD:
+            st.error("Incorrect password.")
+        else:
+            try:
+                validated_urls = validate_url_settings(
+                    {
+                        "apstra_ui_url": apstra_ui_url,
+                        "lab_guide_url": lab_guide_url,
+                        "dca_signup_url": dca_signup_url,
+                        "dca_assurance_login_url": dca_assurance_login_url,
+                    }
+                )
+                save_url_settings(validated_urls)
+                st.success("Resource URL settings updated successfully.")
+                st.rerun()
             except ValueError as exc:
                 st.error(str(exc))
 

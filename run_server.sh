@@ -9,6 +9,7 @@ HOST="${HOST:-127.0.0.1}"
 LOG_DIR="$ROOT_DIR/logs"
 LOG_FILE="$LOG_DIR/streamlit.log"
 PID_FILE="$ROOT_DIR/.streamlit.pid"
+MANAGE_CADDY="${MANAGE_CADDY:-1}"
 
 mkdir -p "$LOG_DIR"
 
@@ -59,4 +60,19 @@ if kill -0 "$NEW_PID" 2>/dev/null; then
 else
     echo "Streamlit failed to start. Check $LOG_FILE for details." >&2
     exit 1
+fi
+
+if [[ "$MANAGE_CADDY" == "1" ]] && command -v systemctl >/dev/null 2>&1; then
+    if systemctl list-unit-files | grep -q '^caddy\.service'; then
+        if ! systemctl is-active --quiet caddy; then
+            echo "Caddy is not active. Starting Caddy..."
+            systemctl start caddy || true
+        fi
+
+        if systemctl is-active --quiet caddy; then
+            echo "Caddy is active. HTTPS proxy should be available."
+        else
+            echo "Warning: Caddy is still inactive. Public HTTPS endpoint may be unreachable." >&2
+        fi
+    fi
 fi

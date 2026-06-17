@@ -73,7 +73,7 @@ def render_lab_table(rows: list[dict[str, str]], url_settings: dict[str, str]) -
         for key, value in row.items():
             if key == "blueprint_name" and value and apstra_ui_url:
                 # Create clickable link for blueprint
-                blueprint_url = f"{apstra_ui_url}/#/blueprints/{value}"
+                blueprint_url = f"{apstra_ui_url}/#/blueprints/{value}/staged"
                 html_table += f'<td style="padding: 12px 16px; border-right: 1px solid rgba(15, 23, 42, 0.08);"><a href="{blueprint_url}" target="_blank" style="color: #0369a1; text-decoration: none; font-weight: 500;">{value}</a></td>'
             else:
                 html_table += f'<td style="padding: 12px 16px; border-right: 1px solid rgba(15, 23, 42, 0.08); color: #0f172a;">{value}</td>'

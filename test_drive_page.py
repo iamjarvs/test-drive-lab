@@ -50,6 +50,39 @@ def build_display_rows(rows: list[dict[str, str]]) -> list[dict[str, str]]:
     return rows
 
 
+def render_lab_table(rows: list[dict[str, str]], url_settings: dict[str, str]) -> None:
+    """Render the lab table with clickable blueprint links."""
+    if not rows:
+        st.info("No lab details available yet.")
+        return
+
+    apstra_ui_url = url_settings.get("apstra_ui_url", "").rstrip("/#")
+    
+    # Build HTML table
+    html_table = '<table style="width: 100%; border-collapse: collapse; border: 1px solid rgba(15, 23, 42, 0.12);">'
+    html_table += '<thead><tr style="background: rgba(15, 23, 42, 0.03); border-bottom: 2px solid rgba(15, 23, 42, 0.12);">'
+    
+    # Header row
+    for key in rows[0].keys():
+        html_table += f'<th style="padding: 12px 16px; text-align: left; font-weight: 600; color: #0f172a; border-right: 1px solid rgba(15, 23, 42, 0.08);">{key.replace("_", " ").title()}</th>'
+    html_table += '</tr></thead><tbody>'
+    
+    # Data rows
+    for row in rows:
+        html_table += '<tr style="border-bottom: 1px solid rgba(15, 23, 42, 0.08); hover: background-color: rgba(15, 23, 42, 0.02);">'
+        for key, value in row.items():
+            if key == "blueprint_name" and value and apstra_ui_url:
+                # Create clickable link for blueprint
+                blueprint_url = f"{apstra_ui_url}/#/blueprints/{value}"
+                html_table += f'<td style="padding: 12px 16px; border-right: 1px solid rgba(15, 23, 42, 0.08);"><a href="{blueprint_url}" target="_blank" style="color: #0369a1; text-decoration: none; font-weight: 500;">{value}</a></td>'
+            else:
+                html_table += f'<td style="padding: 12px 16px; border-right: 1px solid rgba(15, 23, 42, 0.08); color: #0f172a;">{value}</td>'
+        html_table += '</tr>'
+    
+    html_table += '</tbody></table>'
+    st.markdown(html_table, unsafe_allow_html=True)
+
+
 def validate_uploaded_csv(file_bytes: bytes) -> str:
     text = file_bytes.decode("utf-8-sig")
     reader = csv.DictReader(io.StringIO(text))
@@ -472,7 +505,7 @@ with hero_columns[1]:
 
 st.subheader("Current Lab Details")
 st.caption("Visitors can view this table. Use the admin button at the bottom of the page to replace it with a new CSV.")
-st.dataframe(build_display_rows(load_lab_rows()), use_container_width=True, hide_index=True)
+render_lab_table(load_lab_rows(), load_url_settings())
 
 render_link_cards()
 render_admin_panel()
